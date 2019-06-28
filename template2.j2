@@ -1,0 +1,86 @@
+Current configuration : 9546 bytes
+!
+cellular 0 lte profile create 1 kaspi chap {{ kcell_name }} {{ kcell_pass }} ipv4
+!
+cellular 0 lte profile create 2 kaspi.tele2.kz chap {{ tele2_name }} {{ tele2_pass }} ipv4
+!
+no service pad
+service tcp-keepalives-in
+service tcp-keepalives-out
+service timestamps debug datetime msec localtime show-timezone
+service timestamps log datetime msec localtime show-timezone
+service password-encryption
+service sequence-numbers
+!
+hostname {{ hostname }}
+!
+boot-start-marker
+boot-end-marker
+!
+!
+
+interface Tunnel0
+ description TO-HQ
+ ip address {{ tunn_ip }} 255.255.254.0
+ no ip redirects
+ ip mtu 1432
+ ip nhrp authentication kaspivp4
+ ip nhrp map multicast 1.1.1.1
+ ip nhrp map multicast 2.2.2.2
+ ip nhrp map 10.10.10.1 1.1.1.1
+ ip nhrp map 10.10.10.254 2.2.2.2
+ ip nhrp network-id 77
+ ip nhrp holdtime 300
+ ip nhrp nhs 10.10.10.1
+ ip nhrp nhs 10.10.10.254
+ ip ospf network point-to-multipoint
+ delay 600000
+ qos pre-classify
+ tunnel source Cellular0
+ tunnel mode gre multipoint
+ tunnel protection ipsec profile ATM
+!
+interface GigabitEthernet0
+ description atm154-LAN
+ ip address {{ int_ip }} 255.255.255.252
+ ip access-group ATM-IN in
+ ip virtual-reassembly in
+ ip tcp adjust-mss 1392
+ no shut
+ duplex auto
+ speed auto
+!
+interface GigabitEthernet1
+ no ip address
+ shutdown
+ duplex auto
+ speed auto
+!
+interface GigabitEthernet2
+ no ip address
+ shutdown
+ duplex auto
+ speed auto
+!
+!
+!
+!
+router ospf 1
+ router-id {{ router_id }}
+ area 15 authentication message-digest
+ area 15 stub no-summary
+ passive-interface default
+ no passive-interface Tunnel0
+ network {{ p2p_net }} 0.0.0.3 area 15
+ network 10.20.20.0 0.0.1.255 area 15
+!
+ip forward-protocol nd
+!
+no ip http server
+no ip http secure-server
+!
+crypto key generate rsa
+2048
+!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!
