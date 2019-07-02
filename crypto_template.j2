@@ -1,0 +1,9 @@
+crypto ikev2 keyring KEYRG-ATM
+ peer {{ kcell_name }}
+  address {{ kcell_ip }}
+  pre-shared-key password
+ !
+ peer {{ tele2_name }}
+  address {{ tele2_ip }}
+  pre-shared-key password
+ !
